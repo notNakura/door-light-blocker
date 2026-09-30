@@ -1,0 +1,132 @@
+plugins {
+	// Minecraft 1.21.x is obfuscated, so the remapping variant of Loom is required.
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
+	id 'maven-publish'
+}
+
+// Semver build metadata: the "+<minecraft_version>" suffix does not affect version ordering.
+version = "${project.mod_version}+${project.minecraft_version}"
+
+repositories {
+	maven {
+		name = "ParchmentMC"
+		url = "https://maven.parchmentmc.org"
+	}
+	maven {
+		name = "TerraformersMC"
+		url = "https://maven.terraformersmc.com/"
+		content {
+			includeGroup "com.terraformersmc"
+		}
+	}
+	maven {
+		name = "QuiltMC"
+		url = "https://maven.quiltmc.org/repository/release"
+		content {
+			includeGroup "org.quiltmc.parsers"
+		}
+	}
+	mavenCentral()
+	// YACL 3.8.2 for 1.21.11 is published on Modrinth Maven only; maven.isxander.dev stops at 3.8.1.
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "Modrinth"
+				url = "https://api.modrinth.com/maven"
+			}
+		}
+		filter {
+			includeGroup "maven.modrinth"
+		}
+	}
+}
+
+loom {
+	// Keeps client-only classes out of the common source set so dedicated servers never load them.
+	splitEnvironmentSourceSets()
+
+	mods {
+		"door_light_blocker" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+
+	// Mojang names match unobfuscated 26.x; Parchment adds parameter names and javadocs.
+	mappings loom.layered() {
+		officialMojangMappings()
+		parchment("org.parchmentmc.data:parchment-${project.minecraft_version}:${project.parchment_version}@zip")
+	}
+
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Config screen: Mod Menu and YACL are optional at runtime (suggested, never required).
+	// Compile-only for the client code, present in the development runtime for runClient.
+	modClientCompileOnly "maven.modrinth:yacl:${project.yacl_version}"
+	modClientCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+	modLocalRuntime "maven.modrinth:yacl:${project.yacl_version}"
+	modLocalRuntime "com.terraformersmc:modmenu:${project.modmenu_version}"
+	// Loom drops YACL's nested jars in the dev environment, so its libraries are added by hand.
+	localRuntime "org.quiltmc.parsers:json:0.2.1"
+	localRuntime "org.quiltmc.parsers:gson:0.2.1"
+	["imageio-core", "imageio-metadata", "imageio-webp"].each { localRuntime "com.twelvemonkeys.imageio:${it}:3.12.0" }
+	["common-lang", "common-io", "common-image"].each { localRuntime "com.twelvemonkeys.common:${it}:3.12.0" }
+
+	// VS Code (Eclipse JDT) builds into bin/ and copies src/main/resources unfiltered, so its class path holds a
+	// fabric.mod.json whose version is still the literal "${version}". Adding Gradle's processed resources
+	// directory as a runtime entry makes Fabric Loader's class path group read the expanded copy first.
+	localRuntime files(layout.buildDirectory.dir("resources/main"))
+
+	testImplementation "org.junit.jupiter:junit-jupiter:${project.junit_version}"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+test {
+	useJUnitPlatform()
+}
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 21
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+
+	withSourcesJar()
+}
+
+jar {
+	def projectName = project.name
+	inputs.property "projectName", projectName
+
+	from("LICENSE") {
+		rename { "${it}_$projectName"}
+	}
+}
+
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			from components.java
+		}
+	}
+
+	repositories {
+	}
+}

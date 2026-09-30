@@ -1,0 +1,42 @@
+{
+	"schemaVersion": 1,
+	"id": "door_light_blocker",
+	"version": "${version}",
+	"name": "Door Light Blocker",
+	"description": "Closed doors block light like a solid block; open doors let it through. Install on both client and server. Configurable via JSON file, with an optional Mod Menu + YACL screen.",
+	"authors": [
+		"notNakura"
+	],
+	"contact": {
+		"homepage": "https://github.com/notNakura/door-light-blocker",
+		"sources": "https://github.com/notNakura/door-light-blocker",
+		"issues": "https://github.com/notNakura/door-light-blocker/issues"
+	},
+	"license": "MIT",
+	"icon": "assets/door_light_blocker/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"io.github.notnakura.doorlightblocker.DoorLightBlocker"
+		],
+		"client": [
+			"io.github.notnakura.doorlightblocker.client.DoorLightBlockerClient"
+		],
+		"modmenu": [
+			"io.github.notnakura.doorlightblocker.client.DoorLightBlockerModMenu"
+		]
+	},
+	"mixins": [
+		"door_light_blocker.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"yet_another_config_lib_v3": "*",
+		"modmenu": "*"
+	}
+}

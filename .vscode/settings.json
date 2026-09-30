@@ -1,0 +1,9 @@
+{
+	// JDK 21 is resolved from JAVA_HOME or the user-level "java.configuration.runtimes" setting.
+	"java.import.gradle.wrapper.enabled": true,
+	"files.exclude": {
+		"**/.gradle": true,
+		"**/bin": true
+	},
+	"java.configuration.updateBuildConfiguration": "automatic"
+}
