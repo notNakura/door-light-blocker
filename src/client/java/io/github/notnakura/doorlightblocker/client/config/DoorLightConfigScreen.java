@@ -19,7 +19,6 @@ import io.github.notnakura.doorlightblocker.config.DoorLightConfigs;
 import io.github.notnakura.doorlightblocker.light.DoorLightReloader;
 
 import dev.isxander.yacl3.api.ConfigCategory;
-import dev.isxander.yacl3.api.LabelOption;
 import dev.isxander.yacl3.api.Option;
 import dev.isxander.yacl3.api.OptionDescription;
 import dev.isxander.yacl3.api.OptionFlag;
@@ -68,10 +67,9 @@ public final class DoorLightConfigScreen {
 
 		ConfigCategory general = ConfigCategory.createBuilder()
 			.name(text("category.general"))
-			.option(LabelOption.create(notice))
 			.option(slider(
 				text("default.name"),
-				OptionDescription.of(text("default.description")),
+				OptionDescription.of(text("default.description"), notice),
 				DoorLightConfig.MAX_LIGHT,
 				() -> defaultValue[0],
 				value -> defaultValue[0] = value,
@@ -81,10 +79,9 @@ public final class DoorLightConfigScreen {
 
 		ConfigCategory groupsCategory = ConfigCategory.createBuilder()
 			.name(text("category.groups"))
-			.option(LabelOption.create(notice))
 			.options(DoorGroups.ALL.stream().map(group -> slider(
 				text("group." + group),
-				OptionDescription.of(text("group." + group + ".description")),
+				OptionDescription.of(text("group." + group + ".description"), notice),
 				INHERIT,
 				() -> groups.getOrDefault(group, INHERIT),
 				value -> setOverride(groups, group, value),
@@ -96,7 +93,7 @@ public final class DoorLightConfigScreen {
 		for (DoorBlock door : doorBlocks) {
 			String id = BuiltInRegistries.BLOCK.getKey(door).toString();
 			OptionDescription description = OptionDescription.createBuilder()
-				.text(Component.literal(id), text("door.description"))
+				.text(Component.literal(id), text("door.description"), notice)
 				.customImage(new DoorItemImage(new ItemStack(door.asItem())))
 				.build();
 			doorOptions.add(slider(
@@ -110,10 +107,9 @@ public final class DoorLightConfigScreen {
 		}
 		ConfigCategory doorsCategory = ConfigCategory.createBuilder()
 			.name(text("category.doors"))
-			.option(LabelOption.create(notice))
 			.group(OptionGroup.createBuilder()
 				.name(text("doors.group"))
-				.description(OptionDescription.of(text("doors.group.description")))
+				.description(OptionDescription.of(text("doors.group.description"), notice))
 				.options(doorOptions)
 				.build())
 			.build();
